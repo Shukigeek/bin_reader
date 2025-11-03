@@ -1,0 +1,10 @@
+{
+  "FILE_PATH": "C:/Users/shuki/Downloads/log_file_test_01.bin",
+  "LOGGER_SETTINGS": {
+    "LOG_NAME": "bin_reader_log",
+    "LOG_FILE": "bin_reader.log",
+    "LOG_LEVEL": "INFO"
+  }
+}
+
+

@@ -1,83 +1,38 @@
 import json
-import queue
-import struct
-from typing import Dict, Optional
+from pathlib import Path
 
-# ---------- Queue ----------
-points_queue: queue.Queue[Optional[Dict[str, float]]] = queue.Queue()
+# ---------- Load config from JSON ----------
+CONFIG_PATH = r"C:\Users\shuki\Desktop\9900\bin_reader\config.json"
 
-# ---------- Load config ----------
-with open(r"C:\Users\shuki\Desktop\9900\bin_reader\config.json", "r", encoding="utf-8") as f:
-    config = json.load(f)
+with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+    raw_config = json.load(f)
 
-FILE_PATH = config["FILE_PATH"]
-LOGGER_SETTINGS = config["LOGGER_SETTINGS"]
+# ---------- File & Logger Settings ----------
+FILE_PATH = raw_config["FILE_PATH"]
+LOGGER_SETTINGS = raw_config["LOGGER_SETTINGS"]
 
 # ---------- Binary Format Config ----------
-HEADER = b"\xa3\x95"
-FMT_TYPE = 0x80
-FMT_HEADER = b"\xa3\x95\x80"
-FMT_LENGTH = 89
+binary_config = raw_config["BINARY_FORMAT"]
 
-FORMAT_TO_STRUCT = {
-    "a": "32h",  # int16_t[32]
-    "b": "b",  # int8_t
-    "B": "B",  # uint8_t
-    "h": "h",  # int16_t
-    "H": "H",  # uint16_t
-    "i": "i",  # int32_t
-    "I": "I",  # uint32_t
-    "f": "f",  # float
-    "d": "d",  # double
-    "n": "4s",  # char[4]
-    "N": "16s",  # char[16]
-    "Z": "64s",  # char[64]
-    "c": "h",  # int16_t * 100
-    "C": "H",  # uint16_t * 100
-    "e": "i",  # int32_t * 100
-    "E": "I",  # uint32_t * 100
-    "L": "i",  # int32_t lat/lng * 1e-7
-    "M": "B",  # flight mode
-    "q": "q",  # int64_t
-    "Q": "Q",  # uint64_t
-}
+HEADER = bytes.fromhex(binary_config["HEADER"])
+FMT_TYPE = binary_config["FMT_TYPE"]
+FMT_HEADER = bytes.fromhex(binary_config["FMT_HEADER"])
+FMT_LENGTH = binary_config["FMT_LENGTH"]
 
-FMT_SIZE_MAP = {
-    "a": 64,
-    "b": 1,
-    "B": 1,
-    "h": 2,
-    "H": 2,
-    "i": 4,
-    "I": 4,
-    "f": 4,
-    "d": 8,
-    "n": 4,
-    "N": 16,
-    "Z": 64,
-    "c": 2,
-    "C": 2,
-    "e": 4,
-    "E": 4,
-    "L": 4,
-    "M": 1,
-    "q": 8,
-    "Q": 8,
-}
+FORMAT_TO_STRUCT = binary_config["FORMAT_TO_STRUCT"]
+FMT_SIZE_MAP = binary_config["FMT_SIZE_MAP"]
 
-# ---------- Performance Optimizations ----------
-
-# Pre-compile all struct formats for faster unpacking
-STRUCT_CACHE = {fmt: struct.Struct("<" + struct_fmt) for fmt, struct_fmt in FORMAT_TO_STRUCT.items()}
-
-# Field-specific scaling factors
-FIELD_SCALERS = {"HDop": 1e-2, "Lat": 1e-7, "Lng": 1e-7, "TLat": 1e-7, "TLng": 1e-7}
-
-# Format-specific scaling factors
-FORMAT_SCALERS = {"c": 1e-2, "C": 1e-2, "e": 1e-2, "E": 1e-2}  # int * 100
-
-# String format characters (no unpacking needed)
-STRING_FORMATS = frozenset({"n", "N", "Z"})
-
-# ---------- Precomputed scaling ----------
+# ---------- Scaling ----------
+FIELD_SCALERS = binary_config.get("FIELD_SCALERS", {})
+FORMAT_SCALERS = binary_config.get("FORMAT_SCALERS", {})
 PRECOMPUTED_SCALES = {**FIELD_SCALERS, **FORMAT_SCALERS}
+
+# ---------- String formats ----------
+STRING_FORMATS = frozenset(binary_config.get("STRING_FORMATS", []))
+
+# ---------- Rounding ----------
+ROUNDING = frozenset(binary_config.get("ROUNDING", []))
+
+# ---------- Precompiled Structs ----------
+import struct
+STRUCT_CACHE = {fmt: struct.Struct("<" + fmt_str) for fmt, fmt_str in FORMAT_TO_STRUCT.items()}

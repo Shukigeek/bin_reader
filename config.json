@@ -4,7 +4,75 @@
     "LOG_NAME": "bin_reader_log",
     "LOG_FILE": "bin_reader.log",
     "LOG_LEVEL": "INFO"
+  },
+  "BINARY_FORMAT": {
+    "HEADER": "a395",
+    "FMT_TYPE": 128,
+    "FMT_HEADER": "a39580",
+    "FMT_LENGTH": 89,
+    "FORMAT_TO_STRUCT": {
+      "a": "32h",
+      "b": "b",
+      "B": "B",
+      "h": "h",
+      "H": "H",
+      "i": "i",
+      "I": "I",
+      "f": "f",
+      "d": "d",
+      "n": "4s",
+      "N": "16s",
+      "Z": "64s",
+      "c": "h",
+      "C": "H",
+      "e": "i",
+      "E": "I",
+      "L": "i",
+      "M": "B",
+      "q": "q",
+      "Q": "Q"
+    },
+    "FMT_SIZE_MAP": {
+      "a": 64,
+      "b": 1,
+      "B": 1,
+      "h": 2,
+      "H": 2,
+      "i": 4,
+      "I": 4,
+      "f": 4,
+      "d": 8,
+      "n": 4,
+      "N": 16,
+      "Z": 64,
+      "c": 2,
+      "C": 2,
+      "e": 4,
+      "E": 4,
+      "L": 4,
+      "M": 1,
+      "q": 8,
+      "Q": 8
+    },
+    "FIELD_SCALERS": {
+      "HDop": 0.01,
+      "Lat": 1e-7,
+      "Lng": 1e-7,
+      "TLat": 1e-7,
+      "TLng": 1e-7
+    },
+    "FORMAT_SCALERS": {
+      "c": 0.01,
+      "C": 0.01,
+      "e": 0.01,
+      "E": 0.01
+    },
+    "STRING_FORMATS": ["n", "N", "Z"],
+    "ROUNDING": [
+      "Lat","Lng","TLat","TLng","Pitch","IPE","Yaw","IPN","IYAW","DesPitch","NavPitch",
+      "Temp","AltE","VDop","VAcc","Roll","HAGL","SM","VWN","VWE","IVT","SAcc","TAW",
+      "IPD","ErrRP","SVT","SP","TAT","GZ","HDop","NavRoll","NavBrg","TAsp","HAcc",
+      "DesRoll","SH","TBrg","AX"
+    ]
   }
 }
-
-

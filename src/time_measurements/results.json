@@ -1,0 +1,74 @@
+[
+  {
+    "category": "all messages",
+    "library": "pymavlink",
+    "save": false,
+    "time": 64.781
+  },
+  {
+    "category": "all messages",
+    "library": "pymavlink",
+    "save": true,
+    "time": 83.447
+  },
+  {
+    "category": "all messages",
+    "library": "one run",
+    "save": false,
+    "time": 43.687
+  },
+  {
+    "category": "all messages",
+    "library": "one run",
+    "save": true,
+    "time": 52.264
+  },
+  {
+    "category": "all messages",
+    "library": "process",
+    "save": true,
+    "time": 60.173
+  },
+  {
+    "category": "all messages",
+    "library": "threads",
+    "save": true,
+    "time": 51.709
+  },
+  {
+    "category": "GPS",
+    "library": "pymavlink",
+    "save": false,
+    "time": 2.317
+  },
+  {
+    "category": "GPS",
+    "library": "pymavlink",
+    "save": true,
+    "time": 3.087
+  },
+  {
+    "category": "GPS",
+    "library": "one run",
+    "save": false,
+    "time": 1.529
+  },
+  {
+    "category": "GPS",
+    "library": "one run",
+    "save": true,
+    "time": 1.559
+  },
+  {
+    "category": "GPS",
+    "library": "process",
+    "save": true,
+    "time": 4.904
+  },
+  {
+    "category": "GPS",
+    "library": "threads",
+    "save": true,
+    "time": 5.651
+  }
+]

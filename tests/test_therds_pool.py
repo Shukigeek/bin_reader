@@ -1,6 +1,6 @@
 import pytest
 import struct
-from src.business_logic.threads_pool import MAVParserThreads, HEADER, FMT_HEADER, FMT_LENGTH, STRING_FORMATS
+from src.business_logic.mav_parser_threads import MAVParserThreads, HEADER, FMT_HEADER, FMT_LENGTH, STRING_FORMATS
 
 # -------------------------
 # Fixtures

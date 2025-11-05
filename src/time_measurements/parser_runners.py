@@ -1,8 +1,8 @@
 import time
 
-from src.business_logic.mav_parser import MAVParser
-from src.business_logic.process import MAVParserProcess
-from src.business_logic.threads_pool import MAVParserThreads
+from src.business_logic.mav_parser_linear import MAVParserLinear
+from src.business_logic.mav_parser_process import MAVParserProcess
+from src.business_logic.mav_parser_threads import MAVParserThreads
 from pymavlink import mavutil
 
 class ParserRunners:
@@ -10,9 +10,9 @@ class ParserRunners:
         self.file_path = file_path
         self.runners = {
             "pymavlink": self.run_mavutil,
-            "one run": self.run_mavparser,
-            "process": self.run_mavparser_process,
-            "threads": self.run_mavparser_threads
+            "linear": self.run_linear,
+            "process": self.run_process,
+            "threads": self.run_threads
         }
 
     def run_mavutil(self, save=True, type_filter=None):
@@ -31,9 +31,9 @@ class ParserRunners:
         end = time.perf_counter()
         return "pymavlink", round(end - start, 3), save
 
-    def run_mavparser(self, save=True, type_filter=None):
+    def run_linear(self, save=True, type_filter=None):
         start = time.perf_counter()
-        with MAVParser(self.file_path, type_filter=type_filter) as parser:
+        with MAVParserLinear(self.file_path, type_filter=type_filter) as parser:
             if save:
                 parser.parse_all()
             else:
@@ -42,14 +42,14 @@ class ParserRunners:
         end = time.perf_counter()
         return "one run", round(end - start, 3), save
 
-    def run_mavparser_process(self, save=True, type_filter=None):
+    def run_process(self, save=True, type_filter=None):
         start = time.perf_counter()
         process = MAVParserProcess(self.file_path, type_filter=type_filter)
         process.run()
         end = time.perf_counter()
         return "process", round(end - start, 3), save
 
-    def run_mavparser_threads(self, save=True, type_filter=None):
+    def run_threads(self, save=True, type_filter=None):
         start = time.perf_counter()
         threads = MAVParserThreads(self.file_path, type_filter=type_filter)
         threads.run()
@@ -63,8 +63,7 @@ class ParserRunners:
         for name in selected:
             func = self.runners[name]
 
-            # שני הראשונות ירוצו פעמיים: False ואז True
-            if name in ["pymavlink", "one run"]:
+            if name in ["pymavlink", "linear"]:
                 for save_val in [False, True]:
                     lib_name, elapsed, saved = func(save=save_val, type_filter=type_filter)
                     data.append({

@@ -1,6 +1,6 @@
 import pytest
 import struct
-from src.business_logic.process import MAVParserProcess, HEADER, FMT_HEADER, FMT_LENGTH, STRING_FORMATS
+from src.business_logic.mav_parser_process import MAVParserProcess, HEADER, FMT_HEADER, FMT_LENGTH, STRING_FORMATS
 
 # -------------------------
 # Fixtures

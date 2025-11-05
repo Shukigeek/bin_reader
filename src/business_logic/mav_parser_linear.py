@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 import struct
 import mmap
 from src.utils.config import (
@@ -14,7 +14,7 @@ from src.utils.config import (
 )
 
 
-class MAVParser:
+class MAVParserLinear:
     """Ultra-fast MAVLink log parser using memoryview and mmap."""
 
     def __init__(self, file_path: str, type_filter: Optional[List[str]] = None, rounding: bool = True):
@@ -51,18 +51,17 @@ class MAVParser:
         except Exception as e:
             print(f"Error closing: {e}")
 
-    def _build_processors(self, columns: List[str], format_str: str, name: str) -> List[Tuple[str, str, tuple]]:
-        """Build list of field processors for message parsing."""
+    def _build_processors(self, columns: List[str], format_str: str):
+        """Build simple processors: type, column, scale."""
         processors = []
         for col, fmt_char in zip(columns, format_str):
             if fmt_char == "a":
-                processors.append(("array", col, (32,)))
+                processors.append(("array", col, 32))
             elif fmt_char in STRING_FORMATS:
-                processors.append(("string", col, (col == "Data",)))
+                processors.append(("string", col, 0))
             else:
                 scale = FIELD_SCALERS.get(col) or FORMAT_SCALERS.get(fmt_char) or 1.0
-                need_round = col in self.columns_to_round or (name == "GPS" and col == "Alt")
-                processors.append(("numeric", col, (scale, need_round)))
+                processors.append(("numeric", col, scale))
         return processors
 
     def _parse_fmt(self, offset: int) -> Dict[str, Any]:
@@ -78,7 +77,7 @@ class MAVParser:
 
         struct_fmt = "<" + "".join(FORMAT_TO_STRUCT.get(c, "") for c in format_str if c in FORMAT_TO_STRUCT)
         compiled_struct = struct.Struct(struct_fmt)
-        processors = self._build_processors(columns, format_str, name)
+        processors = self._build_processors(columns, format_str)
 
         self.formats[fmt_type] = {
             "Name": name,
@@ -111,29 +110,21 @@ class MAVParser:
         msg = {"mavpackettype": fmt_info["Name"]}
         value_idx = 0
 
-        for kind, col, extra in fmt_info["Processors"]:
+        for kind, col, scale in fmt_info["Processors"]:
+            val = values[value_idx]
+            value_idx += 1
+
             if kind == "array":
-                msg[col] = list(values[value_idx: value_idx + extra[0]])
-                value_idx += extra[0]
+                msg[col] = list(values[value_idx - 1 : value_idx - 1 + scale])
+                value_idx += scale - 1
             elif kind == "string":
-                is_data = extra[0]
-                val = values[value_idx]
-                value_idx += 1
-                if is_data:
-                    msg[col] = val
-                else:
-                    if isinstance(val, (bytes, bytearray)):
-                        msg[col] = val.split(b"\x00", 1)[0].decode("ascii", errors="ignore")
-                    else:
-                        msg[col] = val
+                msg[col] = val.decode("ascii", errors="ignore") if isinstance(val, (bytes, bytearray)) else val
             else:  # numeric
-                scale, need_round = extra
-                val = values[value_idx]
-                value_idx += 1
                 if scale != 1.0:
                     val *= scale
-                if self.rounding and need_round and isinstance(val, float):
-                    val = round(val, 7)
+                if self.rounding and isinstance(val, float):
+                    if col in self.columns_to_round or (fmt_info["Name"] == "GPS" and col == "Alt"):
+                        val = round(val, 7)
                 msg[col] = val
 
         self.message_count += 1
@@ -143,18 +134,6 @@ class MAVParser:
         """Find next message header in file."""
         h0, h1 = self.header_bytes
 
-        # Fast search with filter
-        if self.type_filter:
-            search_bytes = [bytes([h0, h1, t]) for t, v in self.formats.items() if v["Name"] in self.type_filter]
-            search_bytes.append(bytes([h0, h1, FMT_TYPE]))
-
-            for sb in search_bytes:
-                pos = self._mmap.find(sb, self.offset)
-                if pos != -1:
-                    return pos
-            return None
-
-        # Regular scan
         while self.offset < self.size - 1:
             if self._view[self.offset] == h0 and self._view[self.offset + 1] == h1:
                 return self.offset
@@ -164,7 +143,6 @@ class MAVParser:
     def parse_next(self) -> Optional[Dict[str, Any]]:
         """Return next message from file."""
         while self.offset < self.size - 3:
-            # Find next header
             header_pos = self._find_next_header()
             if header_pos is None:
                 self.offset = self.size
@@ -173,7 +151,6 @@ class MAVParser:
             self.offset = header_pos
             msg_type = self._view[self.offset + 2]
 
-            # Handle FMT message
             if msg_type == FMT_TYPE:
                 if self.offset + FMT_LENGTH > self.size:
                     self.offset = self.size
@@ -184,7 +161,6 @@ class MAVParser:
                     return fmt_msg
                 continue
 
-            # Handle data message
             fmt_info = self.formats.get(msg_type)
             if fmt_info:
                 length = fmt_info["Length"]
@@ -204,7 +180,6 @@ class MAVParser:
         return None
 
     def parse_all(self) -> List[Dict[str, Any]]:
-        """Parse all messages in file."""
         messages = []
         while msg := self.parse_next():
             messages.append(msg)
@@ -216,20 +191,19 @@ class MAVParser:
 
 if __name__ == "__main__":
     import time
+    from pymavlink import mavutil
 
-    with MAVParser(FILE_PATH) as parser:
+    with MAVParserLinear(FILE_PATH, type_filter=["GPS"]) as parser:
         start = time.perf_counter()
         # all_msgs = parser.parse_all()
         print(f"Runtime: {time.perf_counter() - start:.2f}s")
         parser.print_summary()
 
-        from pymavlink import mavutil
-
         start_mav = time.perf_counter()
         mav = mavutil.mavlink_connection(FILE_PATH)
         i = 0
         while True:
-            msg = mav.recv_match(blocking= False)
+            msg = mav.recv_match(blocking=False, type=["GPS"])
             my_msg = parser.parse_next()
 
             if msg is None:
@@ -237,12 +211,10 @@ if __name__ == "__main__":
             if msg.to_dict() != my_msg:
                 if "Default" in msg.to_dict():
                     continue
-                print(msg.to_dict())
-                print(my_msg)
-                print(i)
+                print("Mismatch at index:", i)
+                print("pymavlink:", msg.to_dict())
+                print("MAVParser:", my_msg)
                 break
             if i % 1_000_000 == 0:
-                print(i)
-            i+=1
-        # mav_msgs = [msg for msg in iter(lambda: mav.recv_match(blocking=False), None)]
-        # print(f"pymavlink: {time.perf_counter() - start_mav:.2f}s")
+                print("Checked:", i)
+            i += 1

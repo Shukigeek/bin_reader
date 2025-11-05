@@ -3,72 +3,72 @@
     "category": "all messages",
     "library": "pymavlink",
     "save": false,
-    "time": 64.781
+    "time": 57.988
   },
   {
     "category": "all messages",
     "library": "pymavlink",
     "save": true,
-    "time": 83.447
+    "time": 78.36
   },
   {
     "category": "all messages",
     "library": "one run",
     "save": false,
-    "time": 43.687
+    "time": 38.494
   },
   {
     "category": "all messages",
     "library": "one run",
     "save": true,
-    "time": 52.264
+    "time": 45.322
   },
   {
     "category": "all messages",
     "library": "process",
     "save": true,
-    "time": 60.173
+    "time": 64.535
   },
   {
     "category": "all messages",
     "library": "threads",
     "save": true,
-    "time": 51.709
+    "time": 68.74
   },
   {
     "category": "GPS",
     "library": "pymavlink",
     "save": false,
-    "time": 2.317
+    "time": 3.305
   },
   {
     "category": "GPS",
     "library": "pymavlink",
     "save": true,
-    "time": 3.087
+    "time": 3.539
   },
   {
     "category": "GPS",
     "library": "one run",
     "save": false,
-    "time": 1.529
+    "time": 1.624
   },
   {
     "category": "GPS",
     "library": "one run",
     "save": true,
-    "time": 1.559
+    "time": 1.648
   },
   {
     "category": "GPS",
     "library": "process",
     "save": true,
-    "time": 4.904
+    "time": 5.002
   },
   {
     "category": "GPS",
     "library": "threads",
     "save": true,
-    "time": 5.651
+    "time": 5.894
   }
 ]

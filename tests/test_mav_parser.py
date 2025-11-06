@@ -27,7 +27,7 @@ def sample_file(tmp_path):
 
 @pytest.fixture
 def parser(sample_file):
-    return MAVParser(sample_file)
+    return MAVParserLinear(sample_file)
 
 
 # -------------------------

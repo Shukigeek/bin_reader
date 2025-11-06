@@ -170,7 +170,7 @@ class MAVParserThreads:
             return None
 
 
-    def run(self, rounding: bool = True) -> None:
+    def run(self, rounding: bool = True) -> List[Dict[str,Any]]:
         self.scan_file_and_prepare_chunks()
         args_list = [
             (i, self.file_path, chunk, self.fmts, self.type_filter, rounding)
@@ -187,7 +187,7 @@ class MAVParserThreads:
 
         results.sort(key=lambda x: x[0])
         self.messages = [msg for _, msgs in results for msg in msgs]
-
+        return self.messages
 
 
 if __name__ == "__main__":

@@ -5,11 +5,12 @@ from src.utils.config import FILE_PATH
 from src.time_measurements.parser_runners import ParserRunners
 from src.time_measurements.results_manager import ResultsManager
 
+
 class GraphPlotter:
     @staticmethod
     def plot(data):
         """
-        Plots a benchmark bar chart for parser runtimes.
+        Plots a professional benchmark bar chart for parser runtimes.
         The winner (fastest) in each category is highlighted in gold.
         """
         df = pd.DataFrame(data)
@@ -18,40 +19,94 @@ class GraphPlotter:
         winners_idx = df.groupby("category")["time"].idxmin()
         df["winner"] = df.index.isin(winners_idx)
 
-        # Assign colors: gold for winners, blue for save=False, red for save=True
-        df["color_final"] = df.apply(
-            lambda row: "#FFD700" if row.name in winners_idx else ("#636EFA" if not row["save"] else "#EF553B"),
+        # Professional color scheme
+        df["color_group"] = df.apply(
+            lambda row: "Winner" if row.name in winners_idx else ("Standard" if not row["save"] else "With Save to list"),
             axis=1
         )
-        # Add a star marker for winners
-        df["label"] = df.apply(lambda row: f"{row['time']:.2f} ⭐" if row["winner"] else f"{row['time']:.2f}", axis=1)
 
+        # Add formatted labels
+        df["label"] = df.apply(
+            lambda row: f"{row['time']:.2f}s ★" if row["winner"] else f"{row['time']:.2f}s",
+            axis=1
+        )
 
-
-        # Create the bar chart
+        # Create the bar chart with professional styling
         fig = px.bar(
             df,
             x="library",
             y="time",
-            color="color_final",
+            color="color_group",
             barmode="group",
             facet_col="category",
-            title="Parser Runtime Comparison (All Messages / GPS)",
+            title="Parser Performance Benchmark",
             text="label",
-            color_discrete_map="identity"  # Use exact colors from 'color_final'
+            color_discrete_map={
+                "Winner": "#FFB300",  # Gold
+                "Standard": "#1E88E5",  # Professional blue
+                "With Save to list": "#E53935"  # Professional red
+            }
         )
 
-        # Update layout for readability
-        fig.update_traces(textposition="outside")
-        fig.update_layout(
-            yaxis_title="Runtime (seconds)",
-            xaxis_title="Library",
-            font=dict(size=14),
-            bargap=0.25,
-            title_x=0.5,
-            title_font=dict(size=20),
-            showlegend=False
+        # Professional layout
+        fig.update_traces(
+            textposition="outside",
+            textfont_size=13,
+            marker_line_width=0
         )
+
+        fig.update_layout(
+            plot_bgcolor="white",
+            paper_bgcolor="white",
+            font=dict(family="Arial, sans-serif", size=13, color="#333333"),
+            title=dict(
+                text="<b>Parser Performance Benchmark</b><br><sub>Runtime Comparison: All Messages vs GPS Data</sub>",
+                x=0.5,
+                xanchor="center",
+                font=dict(size=22, color="#1a1a1a")
+            ),
+            yaxis_title="<b>Runtime (seconds)</b>",
+            xaxis_title="<b>Parser Library</b>",
+            legend=dict(
+                title="<b>Performance Type</b>",
+                orientation="h",
+                yanchor="bottom",
+                y=-0.25,
+                xanchor="center",
+                x=0.5,
+                font=dict(size=12)
+            ),
+            bargap=0.2,
+            bargroupgap=0.1,
+            margin=dict(t=120, b=100),
+            height=550,
+            width=1200
+        )
+
+        # Update axes styling
+        fig.update_xaxes(
+            showgrid=False,
+            showline=True,
+            linewidth=1,
+            linecolor="#e0e0e0",
+            tickfont=dict(size=12)
+        )
+
+        fig.update_yaxes(
+            showgrid=True,
+            gridwidth=1,
+            gridcolor="#f0f0f0",
+            showline=True,
+            linewidth=1,
+            linecolor="#e0e0e0",
+            tickfont=dict(size=12)
+        )
+
+        # Clean facet labels
+        fig.for_each_annotation(lambda a: a.update(
+            text=f"<b>{a.text.split('=')[-1]}</b>",
+            font=dict(size=14)
+        ))
 
         fig.show()
 

@@ -10,7 +10,6 @@ from src.utils.config import (
     FMT_LENGTH,
     FORMAT_TO_STRUCT,
     STRING_FORMATS,
-    PRECOMPUTED_SCALES,
     FILE_PATH,
     ROUNDING,
     FIELD_SCALERS,
@@ -27,7 +26,6 @@ class MAVParserProcess:
         self.type_filter = set(type_filter) if type_filter else None
         self.chunks: List[Tuple[int, int]] = []
         self.messages: List[Dict[str, Any]] = []
-
         self.rounding_columns : frozenset[str] = ROUNDING
 
     def scan_file_and_prepare_chunks(self) -> None:
@@ -180,7 +178,7 @@ class MAVParserProcess:
             # logger.error(f"Error parsing {fmt_info.get('Name', '?')}: {e}")
             return None
 
-    def run(self, rounding: bool = True) -> None:
+    def run(self, rounding: bool = True) -> List[Dict[str,Any]]:
         self.scan_file_and_prepare_chunks()
         args_list = [
             (i, self.file_path, chunk, self.fmts, self.type_filter, rounding) for i, chunk in enumerate(self.chunks)
@@ -191,7 +189,8 @@ class MAVParserProcess:
 
         results.sort(key=lambda x: x[0])
         self.messages = [msg for _, msgs in results for msg in msgs]
-        self.message_count = len(self.messages)
+        # self.message_count = len(self.messages)
+        return self.messages
 
 
 if __name__ == "__main__":

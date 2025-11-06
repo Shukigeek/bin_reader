@@ -193,28 +193,28 @@ if __name__ == "__main__":
     import time
     from pymavlink import mavutil
 
-    with MAVParserLinear(FILE_PATH, type_filter=["GPS"]) as parser:
+    with MAVParserLinear(FILE_PATH,type_filter=["GPS"]) as parser:
         start = time.perf_counter()
-        # all_msgs = parser.parse_all()
+        all_msgs = parser.parse_all()
         print(f"Runtime: {time.perf_counter() - start:.2f}s")
         parser.print_summary()
 
-        start_mav = time.perf_counter()
-        mav = mavutil.mavlink_connection(FILE_PATH)
-        i = 0
-        while True:
-            msg = mav.recv_match(blocking=False, type=["GPS"])
-            my_msg = parser.parse_next()
-
-            if msg is None:
-                break
-            if msg.to_dict() != my_msg:
-                if "Default" in msg.to_dict():
-                    continue
-                print("Mismatch at index:", i)
-                print("pymavlink:", msg.to_dict())
-                print("MAVParser:", my_msg)
-                break
-            if i % 1_000_000 == 0:
-                print("Checked:", i)
-            i += 1
+        # start_mav = time.perf_counter()
+        # mav = mavutil.mavlink_connection(FILE_PATH)
+        # i = 0
+        # while True:
+        #     msg = mav.recv_match(blocking=False, type=["GPS"])
+        #     my_msg = parser.parse_next()
+        #
+        #     if msg is None:
+        #         break
+        #     if msg.to_dict() != my_msg:
+        #         if "Default" in msg.to_dict():
+        #             continue
+        #         print("Mismatch at index:", i)
+        #         print("pymavlink:", msg.to_dict())
+        #         print("MAVParser:", my_msg)
+        #         break
+        #     if i % 1_000_000 == 0:
+        #         print("Checked:", i)
+        #     i += 1
